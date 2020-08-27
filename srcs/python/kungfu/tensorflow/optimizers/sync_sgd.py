@@ -1,4 +1,7 @@
 from kungfu._utils import map_maybe
+from kungfu.tensorflow.ops import (defuse, fuse, group_all_reduce,
+                                   group_nccl_all_reduce, peer_info,
+                                   monitored_all_reduce)
 from kungfu.tensorflow.ops import defuse, fuse, peer_info
 from kungfu.tensorflow.ops.collective import (
     group_all_reduce, group_hierarchical_nccl_all_reduce,
@@ -84,7 +87,7 @@ class _SynchronousSGD(_KungFuAlgorithm):
             else:
                 summed_gradients = self._group_all_reduce_fn(gradients)
         else:
-            summed_gradients = self._group_all_reduce_fn(gradients)
+            summed_gradients = map_maybe(lambda g: monitored_all_reduce(g, []), gradients)
 
         np = tf.cast(self._num_workers, tf.float32)
         reduced_grads = map_maybe(lambda g: g / np, summed_gradients)

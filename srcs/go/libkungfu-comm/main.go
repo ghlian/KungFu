@@ -135,6 +135,30 @@ func GoKungfuGetPeerLatencies(recvBuf unsafe.Pointer, recvCount int, recvDtype C
 	return 0
 }
 
+//export GoChangeStrategy
+func GoChangeStrategy() int {
+	var ret int
+	sess := defaultPeer.CurrentSession()
+
+	changed := sess.ChangeStrategy()
+	if changed {
+		ret = 1
+	}
+	return ret
+}
+
+//export GoLogStats
+func GoLogStats(idx int) {
+	sess := defaultPeer.CurrentSession()
+	sess.LogStats(idx)
+}
+
+//export GoPrintStategyStats
+func GoPrintStategyStats() {
+	sess := defaultPeer.CurrentSession()
+	sess.PrintStategyStats()
+}
+
 //export GoKungfuNoop
 func GoKungfuNoop(done *C.callback_t) int {
 	noop := func() error { return nil }

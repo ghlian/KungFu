@@ -28,7 +28,8 @@ func (n *Node) isIsolated() bool {
 
 // Graph represents a graph of integers numbered from 0 to n - 1.
 type Graph struct {
-	Nodes []Node
+	Nodes  []Node
+	Master int
 }
 
 func New(n int) *Graph {
@@ -104,11 +105,13 @@ func (g Graph) Reverse() *Graph {
 			r.Nodes[j].Prevs.Append(i)
 		}
 	}
+	r.Master = g.Master
 	return r
 }
 
 func (g *Graph) DebugString() string {
 	b := &bytes.Buffer{}
+	fmt.Printf("Master Peer [%d]\n", g.Master)
 	fmt.Fprintf(b, "[%d]{", len(g.Nodes))
 	for i := range g.Nodes {
 		if g.IsSelfLoop(i) {
