@@ -70,7 +70,6 @@ func genMultiStar(peers PeerList, root int) *graph.Graph {
 		}
 	}
 
-	g.Master = masters[root]
 	return g
 }
 
@@ -98,7 +97,6 @@ func genBinaryTreeStar(peers PeerList, offset int) *graph.Graph {
 		}
 	}
 
-	g.Master = masters[offset]
 	return g
 }
 
@@ -144,7 +142,7 @@ func GenStarBcastGraph(k, r int) *graph.Graph {
 			g.AddEdge(r, i)
 		}
 	}
-	g.Master = r
+
 	return g
 }
 
