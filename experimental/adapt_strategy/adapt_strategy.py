@@ -198,11 +198,16 @@ def run(benchmark_step):
             if args.adapt and (x*args.num_iters + y > 4):
                 if changed:
                     continue
-                ret = check_interference(default_strategy)
+                # ret = check_interference(default_strategy)
+                # if ret == 1:
+                #     changed = True
+                #     log('Interference detected. Changing to alternative comm strategy !')
+                #     set_tree(tree=get_alternative_star_strategy(alternative_strategy))
+                ret = change_strategy()
                 if ret == 1:
                     changed = True
                     log('Interference detected. Changing to alternative comm strategy !')
-                    set_tree(tree=get_alternative_star_strategy(alternative_strategy))
+                    # set_tree(tree=get_alternative_star_strategy(alternative_strategy))
     
     if current_rank() == 0:
         print_strategy_stats()
