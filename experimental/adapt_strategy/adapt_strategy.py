@@ -14,9 +14,9 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras import applications
 from tensorflow.python.util import deprecation
-from kungfu.python import current_rank, 
+from kungfu.python import (current_rank, 
     change_strategy, log_stats, print_strategy_stats,
-    check_interference
+    check_interference)
 
 deprecation._PRINT_DEPRECATION_WARNINGS = False
 default_strategy_master = 0
