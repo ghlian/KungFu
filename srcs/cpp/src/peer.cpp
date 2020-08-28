@@ -90,6 +90,11 @@ int Peer::GetPeerLatencies(float *recvbuf, int recv_count)
     return GoKungfuGetPeerLatencies(recvbuf, recv_count, KungFu_FLOAT);
 }
 
+int Peer::CheckInterference(int idx)
+{
+    return GoKungfuCheckInterference(idx);
+}
+
 // control APIs
 int Peer::ResizeClusterFromURL(bool *changed, bool *keep)
 {

@@ -21,6 +21,8 @@ extern void kungfu_barrier();
 
 extern int kungfu_propose_new_size(int new_size);
 
+extern int kungfu_check_interference(int idx);
+
 extern int kungfu_change_strategy(); //monitor strategy stats and change stratgy if conditions are met 
 
 extern void kungfu_log_stats(int idx);

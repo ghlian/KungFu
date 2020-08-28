@@ -75,6 +75,9 @@ def propose_new_size(new_size):
     # FIXME: check ctypes
     _python_lib.kungfu_propose_new_size(int(new_size))
 
+def check_interference(idx):
+    return _python_lib.kungfu_check_interference(int(idx))
+
 def change_strategy():
     return _python_lib.kungfu_change_strategy()
 

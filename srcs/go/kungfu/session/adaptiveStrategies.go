@@ -6,6 +6,7 @@ import (
 	"time"
 
 	kb "github.com/lsds/KungFu/srcs/go/kungfu/base"
+	"github.com/lsds/KungFu/srcs/go/log"
 	"github.com/lsds/KungFu/srcs/go/plan"
 	"github.com/lsds/KungFu/srcs/go/utils"
 	"github.com/lsds/KungFu/tests/go/fakemodel"
@@ -86,6 +87,76 @@ func (sess *Session) PrintStategyStats() {
 	}
 }
 
+//CheckInterference is checking current state of the strategy stat metrics against the
+//reference window and communicates with the cluster whether to change to an alternate
+//communication strategy or not
+func (sess *Session) CheckInterference(stratIdx int) bool {
+	var ret = false
+
+	if stratIdx < 0 || stratIdx >= len(sess.globalStrategies) {
+		log.Errorf("CheckInterference called with illegal argument for strategy index\n")
+		return ret
+	}
+
+	s := sess.globalStrategies[stratIdx]
+
+	if s.stat.reff.Throughput == 0 {
+
+		s.stat.reff.Throughput = s.stat.Throughput
+
+		if sess.rank == 0 {
+			log.Infof("AP:: Taking reff window snapshot")
+			log.Infof("AP:: Thrroughput = ", utils.ShowRate(s.stat.reff.Throughput))
+		}
+		return ret
+	}
+
+	//communicating metrics with cluster for reaching consensus
+	db := fakemodel.NewDoubleBuffer(kb.I8, sess.GetNumStrategies())
+
+	sb := db.SendBuf.AsI8()
+	rb := db.RecvBuf.AsI8()
+
+	sb[0] = 0
+
+	if sess.rank == 0 {
+		log.Infof("MonitorStrategy:: Checking Throughput = ",
+			utils.ShowRate(s.stat.Throughput), " reff = ",
+			utils.ShowRate((interferenceThreshold * s.stat.reff.Throughput)))
+	}
+
+	//check for congestion
+	if s.stat.Throughput < (interferenceThreshold * float64(s.stat.reff.Throughput)) {
+		sb[0] = 1
+	}
+
+	w := kb.Workspace{
+		SendBuf: db.SendBuf,
+		RecvBuf: db.RecvBuf,
+		OP:      kb.SUM,
+		Name:    "StratMon",
+	}
+
+	err := sess.AllReduce(w)
+	if err != nil {
+		utils.ExitErr(fmt.Errorf("%s failed performing allreduce", `Session.CheckInterference()`))
+	}
+
+	if sess.rank == 0 {
+		log.Infof("AP:: cluster response -> %d", rb[0])
+	}
+
+	if rb[0] > int8(sess.Size()/2) {
+		//reached consensus
+		if sess.rank == 0 {
+			log.Infof("AP:: cluster reached consensus on changing to alternative strategy")
+		}
+		ret = true
+	}
+
+	return ret
+}
+
 //ChangeStrategy monitores throughput performance of the active strategy (strategy #0)
 //and if it detects significan perfromance degredation, suspends the active strategy and
 //changes to an alternate strategy.
@@ -94,22 +165,13 @@ func (sess *Session) ChangeStrategy() bool {
 
 	s := sess.globalStrategies[0]
 
-	//s.stat.calcAvgWind()
-
 	if s.stat.reff.Throughput == 0 {
 
-		//TODO: temp dev change. make this permanent by considering distrib state
-		// s.stat.reff.AvgDuration = s.stat.AvgDuration
-		// s.stat.reff.CmaDuration = s.stat.CmaDuration
-		// s.stat.reff.AvgWndDuration = s.stat.AvgWndDuration
 		s.stat.reff.Throughput = s.stat.Throughput
 
 		if sess.rank == 0 {
-			fmt.Println("DEBUG:: Taking reff window snapshot")
-			// fmt.Println("DEBUG:: AvgDur = ", s.stat.reff.AvgDuration)
-			// fmt.Println("DEBUG:: AvgWndDur = ", s.stat.reff.AvgWndDuration)
-			// fmt.Println("DEBUG:: CmaDur = ", s.stat.reff.CmaDuration)
-			fmt.Println("DEBUG:: Thrroughput = ", utils.ShowRate(s.stat.reff.Throughput))
+			log.Infof("AP:: Taking reff window snapshot")
+			log.Infof("AP:: Thrroughput = ", utils.ShowRate(s.stat.reff.Throughput))
 		}
 		return false
 	}

@@ -32,6 +32,8 @@ int kungfu_propose_new_size(int new_size)
     return _default_peer->ProposeNewSize(new_size);
 }
 
+int kungfu_check_interference(int idx) {return _default_peer->CheckInterference(idx); }
+
 int kungfu_change_strategy() { return _default_peer->ChangeStrategy(); }
 
 void kungfu_log_stats(int idx) { return _default_peer->LogStats(idx); }

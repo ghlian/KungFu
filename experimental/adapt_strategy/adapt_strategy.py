@@ -14,7 +14,9 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras import applications
 from tensorflow.python.util import deprecation
-from kungfu.python import current_rank, change_strategy, log_stats, print_strategy_stats
+from kungfu.python import current_rank, 
+    change_strategy, log_stats, print_strategy_stats,
+    check_interference
 
 deprecation._PRINT_DEPRECATION_WARNINGS = False
 default_strategy_master = 0
@@ -191,9 +193,10 @@ def run(benchmark_step):
             if args.adapt and (x*args.num_iters + y > 4):
                 if changed:
                     continue
-                ret = change_strategy()
+                ret = check_interference()
                 if ret == 1:
                     changed = True
+                    log('should change strategy')
     
     if current_rank() == 0:
         print_strategy_stats()
