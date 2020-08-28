@@ -1,6 +1,8 @@
 package session
 
 import (
+	"fmt"
+
 	"github.com/lsds/KungFu/srcs/go/plan/graph"
 	"github.com/lsds/KungFu/srcs/go/utils/assert"
 )
@@ -16,6 +18,10 @@ func (sess *Session) SetGlobalStrategy(sl strategyList) error {
 	sess.globalStrategies = sl
 
 	assert.OK(sess.barrier())
+
+	fmt.Println("BcastGraph")
+	sl.choose(0).bcastGraph.DebugString()
+
 	return nil
 }
 
