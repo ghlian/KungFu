@@ -16,10 +16,15 @@ from tensorflow.keras import applications
 from tensorflow.python.util import deprecation
 from kungfu.python import (current_rank, 
     change_strategy, log_stats, print_strategy_stats,
-    check_interference)
+    check_interference, current_cluster_size)
+from kungfu.tensorflow.ops.adapt import set_tree
 
 deprecation._PRINT_DEPRECATION_WARNINGS = False
-default_strategy_master = 0
+default_strategy = 0
+alternative_strategy = 1
+
+def get_alternative_star_strategy(off: int):
+    return [off] * current_cluster_size() 
 
 # Benchmark settings
 parser = argparse.ArgumentParser(
@@ -184,7 +189,7 @@ def run(benchmark_step):
     for x in range(args.num_iters): 
         for y in range(args.num_batches_per_iter):
             time = timeit.timeit(benchmark_step, number=1)
-            log_stats(default_strategy_master)
+            log_stats(default_strategy)
 
             img_sec = args.batch_size / time
             log('Iter #%d: %.1f img/sec per %s' % (x*args.num_batches_per_iter + y, img_sec, device))
@@ -193,10 +198,11 @@ def run(benchmark_step):
             if args.adapt and (x*args.num_iters + y > 4):
                 if changed:
                     continue
-                ret = check_interference()
+                ret = check_interference(default_strategy)
                 if ret == 1:
                     changed = True
-                    log('should change strategy')
+                    log('Interference detected. Changing to alternative comm strategy !')
+                    set_tree(tree=get_alternative_star_strategy(alternative_strategy))
     
     if current_rank() == 0:
         print_strategy_stats()

@@ -106,7 +106,7 @@ func (sess *Session) CheckInterference(stratIdx int) bool {
 
 		if sess.rank == 0 {
 			log.Infof("AP:: Taking reff window snapshot")
-			log.Infof("AP:: Thrroughput = ", utils.ShowRate(s.stat.reff.Throughput))
+			log.Infof("AP:: Thrroughput = %s", utils.ShowRate(s.stat.reff.Throughput))
 		}
 		return ret
 	}
@@ -120,8 +120,8 @@ func (sess *Session) CheckInterference(stratIdx int) bool {
 	sb[0] = 0
 
 	if sess.rank == 0 {
-		log.Infof("MonitorStrategy:: Checking Throughput = ",
-			utils.ShowRate(s.stat.Throughput), " reff = ",
+		log.Infof("MonitorStrategy:: Checking Throughput = %s, reff= %s",
+			utils.ShowRate(s.stat.Throughput),
 			utils.ShowRate((interferenceThreshold * s.stat.reff.Throughput)))
 	}
 
